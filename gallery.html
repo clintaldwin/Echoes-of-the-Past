@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Echoes — Memory Gallery</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&family=Dancing+Script:wght@400;500&family=Lora:ital@0;1&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/gallery.css">
+  <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/ghost.css">
+  <link rel="stylesheet" href="css/themes.css">
+
+  <style>
+    /* ─── Gallery body ─── */
+    .gallery-body { overflow: hidden; }
+
+    /* ════════════════════════════════════════
+       FULL-SCREEN MEMORY OVERLAY
+    ════════════════════════════════════════ */
+    .mem-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: var(--z-modal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .mem-overlay.is-open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* Dark blur backdrop */
+    .mem-overlay__bg {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 5, 3, 0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      opacity: var(--overlay-bg-opacity, 1);
+      transition: opacity 0.1s linear;
+    }
+
+    /* Film-grain texture layer */
+    .mem-overlay__grain {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      background-size: 160px 160px;
+      opacity: 0.035;
+      mix-blend-mode: overlay;
+    }
+
+    /* Content stage */
+    .mem-overlay__stage {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 70px 80px 90px;
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 768px) {
+      .mem-overlay__stage { padding: 60px 16px 80px; }
+    }
+
+    /* Close button */
+    .mem-overlay__close {
+      position: fixed;
+      top: max(18px, env(safe-area-inset-top));
+      right: max(18px, env(safe-area-inset-right));
+      z-index: 10;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.45);
+      font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: none;
+      transition: background 0.3s ease, color 0.3s ease, transform 0.25s ease;
+    }
+    .mem-overlay__close:hover {
+      background: rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.85);
+      transform: rotate(90deg);
+    }
+
+    /* Nav arrows */
+    .mem-overlay__arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.25);
+      font-family: var(--font-display);
+      font-size: 2.8rem;
+      line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: none;
+      opacity: 0;
+      transition: opacity 0.3s ease, background 0.3s ease, color 0.3s ease;
+      pointer-events: none;
+    }
+    .mem-overlay.is-open:hover .mem-overlay__arrow.is-available {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .mem-overlay__arrow:hover {
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7);
+    }
+    .mem-overlay__arrow--prev { left: max(14px, env(safe-area-inset-left)); }
+    .mem-overlay__arrow--next { right: max(14px, env(safe-area-inset-right)); }
+
+    @media (max-width: 768px) { .mem-overlay__arrow { display: none; } }
+
+    /* Meta bar */
+    .mem-overlay__meta {
+      position: fixed;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      left: 0; right: 0;
+      z-index: 10;
+      text-align: center;
+      padding: 0 56px;
+      pointer-events: none;
+    }
+    .mem-overlay__title {
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 3.5vw, 2rem);
+      font-style: italic;
+      font-weight: 300;
+      color: rgba(245, 235, 215, 0.88);
+      letter-spacing: 0.02em;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.9);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mem-overlay__date {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(143, 175, 142, 0.55);
+      margin-top: 5px;
+    }
+
+    /* ─── PHOTO view ─── */
+    .overlay-photo {
+      max-width: 92vw;
+      max-height: 80vh;
+      position: relative;
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.03);
+      animation: overlayReveal 0.6s var(--ease-soft) both;
+    }
+    .overlay-photo__img {
+      max-width: 92vw;
+      max-height: 80vh;
+      width: auto; height: auto;
+      display: block;
+      object-fit: contain;
+      animation: kenBurns 20s ease-in-out infinite alternate;
+      transform-origin: center center;
+    }
+    @keyframes kenBurns {
+      from { transform: scale(1)    translate(0,   0);   }
+      to   { transform: scale(1.07) translate(-1%, 1%); }
+    }
+    @keyframes overlayReveal {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* ─── VIDEO view ─── */
+    .overlay-video {
+      width: min(92vw, 148vh);
+      position: relative;
+      z-index: 2;
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.85);
+      animation: overlayReveal 0.6s var(--ease-soft) both;
+    }
+    .overlay-video__player {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: none;
+      display: block;
+      background: #000;
+    }
+
+    /* ─── Video loading shimmer (amber, pulsing) ─── */
+    .overlay-video__shimmer {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      background: radial-gradient(circle at center,
+        rgba(212, 165, 90, 0.28), rgba(212, 165, 90, 0.04) 70%);
+      animation: shimmerPulse 1.4s ease-in-out infinite;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .overlay-video__shimmer.is-hidden {
+      opacity: 0 !important;
+    }
+    @keyframes shimmerPulse {
+      0%, 100% { opacity: 0.35; }
+      50%      { opacity: 0.8;  }
+    }
+
+    /* ─── Double-tap seek hints ─── */
+    .overlay-video__seekHint {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 4;
+      font-family: var(--font-mono);
+      font-size: 1.1rem;
+      letter-spacing: 0.06em;
+      color: rgba(212, 165, 90, 0.95);
+      text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .overlay-video__seekHint--left  { left: 20px; }
+    .overlay-video__seekHint--right { right: 20px; }
+    .overlay-video__seekHint.is-flashing {
+      animation: seekFlash 0.5s ease;
+    }
+    @keyframes seekFlash {
+      0%   { opacity: 0;   transform: translateY(-50%) scale(0.8);  }
+      30%  { opacity: 1;   transform: translateY(-50%) scale(1.15); }
+      100% { opacity: 0;   transform: translateY(-50%) scale(1);    }
+    }
+
+    /* Custom amber-themed controls, replacing native browser controls */
+    .overlay-video__controls {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 18px;
+      background: linear-gradient(to top, rgba(6,5,3,0.88), transparent);
+    }
+    .overlay-video__playBtn {
+      flex-shrink: 0;
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: rgba(212, 165, 90, 0.16);
+      border: 1.5px solid rgba(212, 165, 90, 0.4);
+      color: rgba(212, 165, 90, 0.9);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      cursor: none;
+      transition: background 0.25s ease, transform 0.2s ease;
+    }
+    .overlay-video__playBtn:hover {
+      background: rgba(212, 165, 90, 0.28);
+      transform: scale(1.06);
+    }
+    .overlay-video__playBtn::after      { content: '▶'; }
+    .overlay-video__playBtn.is-playing::after { content: '⏸'; }
+    .overlay-video__progress {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(212, 165, 90, 0.18);
+      cursor: none;
+      position: relative;
+    }
+    .overlay-video__progressFill {
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 0%;
+      border-radius: 2px;
+      background: rgba(212, 165, 90, 0.85);
+      transition: width 0.1s linear;
+    }
+    .overlay-video__time {
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: rgba(212, 165, 90, 0.65);
+      white-space: nowrap;
+    }
+
+    /* ─── AUDIO (cassette) view ─── */
+    .overlay-audio {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      z-index: 2;
+      animation: overlayReveal 0.6s var(--ease-soft) both;
+    }
+    .overlay-cassette {
+      width: clamp(260px, 40vw, 340px);
+      background: #1C1812;
+      border-radius: 16px;
+      padding: 28px 32px 24px;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .overlay-cassette__label {
+      background: #F5EFE0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+      font-style: italic;
+      color: rgba(44, 36, 22, 0.78);
+    }
+    .overlay-cassette__reels {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 12px;
+      gap: 12px;
+    }
+    .overlay-cassette__reel {
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.09);
+      background: radial-gradient(circle at 38% 33%, rgba(255,255,255,0.06), transparent 60%);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .overlay-cassette__reel.is-spinning { animation: reelSpin 2.2s linear infinite; }
+    @keyframes reelSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .overlay-cassette__reel::after {
+      content: '';
+      width: 15px; height: 15px;
+      background: rgba(255,255,255,0.13);
+      border-radius: 50%;
+    }
+    .overlay-cassette__waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 36px;
+      flex: 1;
+    }
+    .overlay-cassette__bar {
+      width: 3px; border-radius: 2px;
+      background: rgba(212, 165, 90, 0.45);
+    }
+    .overlay-cassette__bar.is-active {
+      background: rgba(212, 165, 90, 0.85);
+      animation: barPulse 0.7s ease-in-out infinite alternate;
+    }
+    @keyframes barPulse {
+      from { transform: scaleY(0.5); }
+      to   { transform: scaleY(1); }
+    }
+    .overlay-cassette__play {
+      display: flex; align-items: center; justify-content: center;
+      width: 54px; height: 54px; border-radius: 50%;
+      background: rgba(212, 165, 90, 0.14);
+      border: 1.5px solid rgba(212, 165, 90, 0.38);
+      margin: 20px auto 0;
+      font-size: 1.3rem;
+      color: rgba(212, 165, 90, 0.88);
+      cursor: none;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .overlay-cassette__play:hover { background: rgba(212, 165, 90, 0.24); transform: scale(1.06); }
+    .overlay-cassette__play::after { content: '▶'; }
+    .overlay-cassette__play.is-playing::after { content: '⏸'; }
+
+    /* ════════════════════════════════════════
+       NEW MEMORY TOAST
+    ════════════════════════════════════════ */
+    .new-toast {
+      position: fixed;
+      bottom: calc(max(20px, env(safe-area-inset-bottom)) + 68px);
+      left: 50%;
+      transform: translateX(-50%) translateY(14px);
+      z-index: calc(var(--z-ui) + 5);
+      background: rgba(18, 15, 10, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(143, 175, 142, 0.22);
+      border-radius: 50px;
+      padding: 10px 22px;
+      font-family: var(--font-ghost);
+      font-size: 1rem;
+      color: rgba(143, 175, 142, 0.85);
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        opacity 0.4s ease,
+        transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .new-toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ════════════════════════════════════════
+       SETUP PROMPT (shown when unconfigured)
+    ════════════════════════════════════════ */
+    .setup-prompt {
+      position: fixed;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: var(--z-ui);
+      text-align: center;
+      padding: 40px 24px;
+      gap: 28px;
+      pointer-events: none;
+    }
+    .setup-prompt.is-visible {
+      display: flex;
+      pointer-events: all;
+    }
+    .setup-prompt__title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 5vw, 3.2rem);
+      font-style: italic;
+      font-weight: 300;
+      color: rgba(237, 217, 163, 0.72);
+      letter-spacing: 0.01em;
+    }
+    .setup-prompt__sub {
+      font-family: var(--font-ghost);
+      font-size: 1.1rem;
+      font-style: italic;
+      color: rgba(143, 175, 142, 0.5);
+    }
+    .setup-prompt__steps {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      color: rgba(200, 185, 155, 0.6);
+      line-height: 2.1;
+      border: 1px solid rgba(143, 175, 142, 0.14);
+      border-radius: 14px;
+      padding: 22px 32px;
+      max-width: 520px;
+      width: 100%;
+      text-align: left;
+      background: rgba(255,255,255,0.02);
+    }
+    .setup-prompt__steps span { color: rgba(212, 165, 90, 0.75); }
+    .setup-prompt__steps a {
+      color: rgba(143, 175, 142, 0.7);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: none;
+    }
+
+    /* ════════════════════════════════════════
+       CONTROL PILL
+    ════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .gallery-controls {
+        bottom: max(16px, env(safe-area-inset-bottom));
+        padding: 10px 16px;
+        gap: 12px;
+      }
+      .gallery-controls__btn span:last-child { display: none; }
+    }
+
+    /* Sync button loading state */
+    .btn-sync.is-syncing { opacity: 0.5; pointer-events: none; }
+    .btn-sync.is-syncing span:first-child {
+      display: inline-block;
+      animation: spinOnce 0.7s linear infinite;
+    }
+    @keyframes spinOnce {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* Lumi above overlay when open */
+    .overlay-lumi-raised #lumi { z-index: 45 !important; }
+  </style>
+</head>
+
+<body class="gallery-body no-select">
+
+  <svg class="svg-filters" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="wrinkle">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.06" numOctaves="3" seed="5"/>
+        <feDisplacementMap in="SourceGraphic" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <div id="cursor"></div>
+  <div class="grain-overlay"  aria-hidden="true"></div>
+  <div class="vignette"       aria-hidden="true"></div>
+
+  <div class="fog-container" aria-hidden="true">
+    <div class="fog fog-1"></div>
+    <div class="fog fog-2"></div>
+    <div class="fog fog-3"></div>
+  </div>
+
+  <div class="gallery-bg" aria-hidden="true">
+    <div class="gallery-bg__wash gallery-bg__wash--1"></div>
+    <div class="gallery-bg__wash gallery-bg__wash--2"></div>
+    <div class="gallery-bg__wash gallery-bg__wash--3"></div>
+  </div>
+
+  <div class="mood-overlay"   id="moodOverlay" aria-hidden="true"></div>
+  <div class="stars-layer"    id="starsLayer"  aria-hidden="true"></div>
+  <div class="memory-count"   id="memoryCount" aria-live="polite"></div>
+
+  <!-- Lumi -->
+  <div id="lumi-mount"></div>
+
+  <!-- Gallery stage -->
+  <main class="gallery-stage" id="galleryStage" role="main" aria-label="Floating memory gallery">
+    <div class="gallery-empty" id="galleryEmpty">
+      <p class="gallery-empty__title">The folder is quiet for now</p>
+      <p class="gallery-empty__hint">Drop a photo or video into MEMORIES LOVEY ✦</p>
+    </div>
+  </main>
+
+  <!-- Control pill -->
+  <nav class="gallery-controls" role="navigation" aria-label="Gallery controls">
+    <button class="gallery-controls__btn btn-sound" id="soundBtn"
+            aria-label="Toggle ambient sound" aria-pressed="false">
+      <span aria-hidden="true">♪</span>
+      <span>Sound</span>
+    </button>
+
+    <div class="gallery-controls__divider" role="separator"></div>
+
+    <button class="gallery-controls__btn btn-sync" id="syncBtn"
+            aria-label="Check for new memories" title="Sync with Drive">
+      <span aria-hidden="true">↻</span>
+      <span>Sync</span>
+    </button>
+  </nav>
+
+  <!-- Setup prompt (shown when config.js is not filled in) -->
+  <div class="setup-prompt" id="setupPrompt" role="status">
+    <p class="setup-prompt__title">echoes needs two things.</p>
+    <p class="setup-prompt__sub">just a quick setup, then it's alive.</p>
+    <div class="setup-prompt__steps">
+      <span>① open</span> <code>js/config.js</code><br>
+      <span>② paste</span> your Google API key in <code>apiKey</code><br>
+      <span>③ paste</span> your MEMORIES LOVEY folder ID in <code>folderId</code><br>
+      <span>④ deploy</span> — the gallery fills itself<br><br>
+      see <a href="SETUP.md" target="_blank">SETUP.md</a> for step-by-step instructions.
+    </div>
+  </div>
+
+  <!-- Toast: new memory arrived -->
+  <div class="new-toast" id="newToast" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ════════════════════════════════════════
+       FULL-SCREEN MEMORY OVERLAY
+  ════════════════════════════════════════ -->
+  <div class="mem-overlay" id="memOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="mem-overlay__bg" id="overlayBg"></div>
+    <div class="mem-overlay__grain" aria-hidden="true"></div>
+
+    <div class="mem-overlay__stage" id="overlayStage">
+      <!-- Content injected by JS -->
+    </div>
+
+    <div class="mem-overlay__meta">
+      <div class="mem-overlay__title" id="overlayTitle"></div>
+      <div class="mem-overlay__date"  id="overlayDate"></div>
+    </div>
+
+    <button class="mem-overlay__close" id="overlayClose" aria-label="Close (Esc)">✕</button>
+
+    <button class="mem-overlay__arrow mem-overlay__arrow--prev"
+            id="overlayPrev" aria-label="Previous memory">‹</button>
+    <button class="mem-overlay__arrow mem-overlay__arrow--next"
+            id="overlayNext" aria-label="Next memory">›</button>
+  </div>
+
+  <script type="module">
+    import { requireAuth }                      from './js/auth.js';
+    import { initCursor }                       from './js/cursor.js';
+    import { initTheme }                        from './js/time-theme.js';
+    import { initLumi, lumi }                   from './js/lumi.js';
+    import { initParticles }                    from './js/particles.js';
+    import { initGallery, respawnRandomSample, getAllMemories } from './js/gallery.js';
+    import { initAudioBtn, audioCtrl }          from './js/audio.js';
+    import { DRIVE }                            from './js/drive.js';
+
+    /* ─── Auth ─── */
+    if (!requireAuth()) throw new Error('Not authenticated');
+
+    /* ─── Cursor + Theme ─── */
+    initCursor();
+    initTheme();
+    const theme = document.body.getAttribute('data-theme') || 'evening';
+
+    /* ─── Session tracking ─── */
+    DRIVE.markVisited();
+    const isReturn = DRIVE.isReturnVisit();
+
+    /* ─── Lumi ─── */
+    initLumi({
+      container: document.getElementById('lumi-mount') || document.body,
+      isGuest: false,
+      isReturn,
+      theme
+    });
+
+    /* ─── Particles ─── */
+    initParticles();
+
+    /* ─── Sound button ─── */
+    initAudioBtn('#soundBtn');
+
+    /* ─── Check config ─── */
+    if (!DRIVE.isConfigured()) {
+      document.getElementById('setupPrompt').classList.add('is-visible');
+      lumi?.setState('guiding');
+      lumi?.speak?.('setup');
+    } else {
+      await bootGallery();
+    }
+
+    /* ════════════════════════════════════════
+       GALLERY BOOT
+    ════════════════════════════════════════ */
+    async function bootGallery() {
+      const stage = document.getElementById('galleryStage');
+
+      try {
+        await initGallery(stage, DRIVE, {
+          onOpen: (memory, { onClose, origin }) => openOverlay(memory, onClose, origin)
+        });
+      } catch (err) {
+        console.error('[echoes] Gallery failed to load:', err);
+        showToastMsg(`couldn't reach drive — check config.js`);
+        return;
+      }
+
+      /* ─── Polling: notify only — no live DOM injection.
+             New memories are picked up on next Sync / respawn. ─── */
+      DRIVE.onChange(newMemories => {
+        const label = newMemories.length === 1
+          ? `✦ 1 new — tap Sync to see them`
+          : `✦ ${newMemories.length} new — tap Sync to see them`;
+        showToastMsg(label);
+        lumi?.setState('excited');
+        setTimeout(() => lumi?.speak?.('new'), 900);
+      });
+      DRIVE.startPolling();
+    }
+
+    /* ─── Sync button (manual refresh) ───
+       Clean destroy-then-respawn: tears down the current card batch and
+       spawns a fresh random sample of 7 from the full pool, rather than
+       accumulating cards live via addMemoryCards(). */
+    document.getElementById('syncBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('syncBtn');
+      btn.classList.add('is-syncing');
+
+      try {
+        const beforeIds = new Set(getAllMemories().map(m => m.id));
+
+        await respawnRandomSample();
+
+        // Informational only — doesn't affect which cards were spawned,
+        // just lets the user know if anything new showed up in the pool.
+        const afterIds = new Set(getAllMemories().map(m => m.id));
+        const sawNew   = [...afterIds].some(id => !beforeIds.has(id));
+
+        showToastMsg(sawNew ? 'refreshed ✦ new memories in the mix' : 'all caught up ✦');
+        lumi?.setState(sawNew ? 'excited' : 'idle');
+      } catch (e) {
+        showToastMsg('sync failed — check your connection');
+      }
+
+      btn.classList.remove('is-syncing');
+    });
+
+    /* ════════════════════════════════════════
+       FULL-SCREEN OVERLAY
+    ════════════════════════════════════════ */
+    const overlay     = document.getElementById('memOverlay');
+    const overlayStage= document.getElementById('overlayStage');
+    const overlayTitle= document.getElementById('overlayTitle');
+    const overlayDate = document.getElementById('overlayDate');
+    const overlayClose= document.getElementById('overlayClose');
+    const overlayPrev = document.getElementById('overlayPrev');
+    const overlayNext = document.getElementById('overlayNext');
+
+    let currentMemory   = null;
+    let closeCallback   = null;
+    let lumiTimerHandle = null;
+
+    /* Touch gesture state (swipe-nav + swipe-down-to-dismiss) */
+    let touchStartX      = 0;
+    let touchStartY      = 0;
+    let isDraggingDown    = false;
+    const DISMISS_THRESHOLD = 75;
+
+    function openOverlay(memory, onClose, origin) {
+      currentMemory = memory;
+      closeCallback = onClose;
+
+      renderOverlayContent(memory);
+      updateOverlayNav();
+
+      if (origin) applyZoomOrigin(origin);
+
+      overlay.setAttribute('aria-hidden', 'false');
+      overlay.classList.add('is-open');
+      document.body.classList.add('overlay-lumi-raised');
+
+      /* Lumi reacts after a moment */
+      clearTimeout(lumiTimerHandle);
+      lumiTimerHandle = setTimeout(() => {
+        const moodMap = {
+          peaceful:'idle', hopeful:'excited',
+          melancholy:'melancholy', dark:'melancholy', passionate:'curious'
+        };
+        lumi?.setState(moodMap[memory.mood] || 'idle');
+      }, 3000);
+    }
+
+    /* ─── Zoom-from-card-position transition ───
+       Measures where the content wrapper naturally lands (centered by the
+       overlay's flex layout), then fakes a "grow from the card" effect by
+       starting the wrapper transformed to match the card's rect/position
+       and animating it back to identity on the next frame. */
+    function applyZoomOrigin(origin) {
+      const wrapper = overlayStage.firstElementChild;
+      if (!wrapper) return;
+
+      wrapper.style.animation = 'none'; // defer to our own JS-driven transform
+
+      const finalRect    = wrapper.getBoundingClientRect();
+      const finalCenterX = finalRect.left + finalRect.width  / 2;
+      const finalCenterY = finalRect.top  + finalRect.height / 2;
+
+      const scaleX = finalRect.width  ? Math.max(origin.width  / finalRect.width,  0.05) : 1;
+      const scaleY = finalRect.height ? Math.max(origin.height / finalRect.height, 0.05) : 1;
+      const dx = origin.centerX - finalCenterX;
+      const dy = origin.centerY - finalCenterY;
+
+      wrapper.style.transition = 'none';
+      wrapper.style.opacity    = '0.85';
+      wrapper.style.transform  = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+
+      void wrapper.offsetHeight; // force reflow so the start state registers
+
+      requestAnimationFrame(() => {
+        wrapper.style.transition = 'transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease';
+        wrapper.style.transform  = 'translate(0, 0) scale(1, 1)';
+        wrapper.style.opacity    = '1';
+
+        wrapper.addEventListener('transitionend', function cleanup(e) {
+          if (e.propertyName !== 'transform') return;
+          wrapper.style.transition = '';
+          wrapper.style.transform  = '';
+          wrapper.style.animation  = '';
+          wrapper.removeEventListener('transitionend', cleanup);
+        });
+      });
+    }
+
+    function closeOverlay() {
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('overlay-lumi-raised');
+
+      clearTimeout(lumiTimerHandle);
+      lumi?.setState('idle');
+
+      /* Explicitly stop the media element and drop its source *before*
+         wiping the DOM — this forces the browser to actually abort the
+         in-flight stream request rather than just orphaning the node,
+         so large video/audio files stop playing immediately. */
+      const activeVideo = document.getElementById('overlayVideo');
+      if (activeVideo) {
+        activeVideo.pause();
+        activeVideo.removeAttribute('src');
+        activeVideo.load();
+      }
+      const activeAudio = document.getElementById('overlayAudio');
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio.removeAttribute('src');
+        activeAudio.load();
+      }
+
+      /* Clear content to stop video/audio playback */
+      setTimeout(() => {
+        overlayStage.innerHTML = '';
+        currentMemory = null;
+      }, 500);
+
+      closeCallback?.();
+      closeCallback = null;
+    }
+
+    function renderOverlayContent(memory) {
+      /* Update meta bar */
+      overlayTitle.textContent = memory.title || 'Untitled';
+      overlayDate.textContent  = memory.dateStr || '';
+
+      /* Build content by type */
+      let html = '';
+
+      switch (memory.type) {
+
+        case 'photo':
+          html = `
+            <div class="overlay-photo">
+              <img class="overlay-photo__img"
+                   src="${escAttr(memory.fileURL)}"
+                   alt="${escAttr(memory.title)}"
+                   onerror="this.src='${escAttr(memory.thumbnail || memory.fileURL)}'">
+            </div>`;
+          break;
+
+        case 'video': {
+          const videoSrc = DRIVE.streamUrl(memory.driveId) || memory.fileURL;
+          html = `
+            <div class="overlay-video">
+              <div class="overlay-video__shimmer" id="overlayVideoShimmer" aria-hidden="true"></div>
+              <video class="overlay-video__player" id="overlayVideo"
+                     src="${escAttr(videoSrc)}"
+                     playsinline
+                     preload="auto"></video>
+              <div class="overlay-video__seekHint overlay-video__seekHint--left"  id="overlaySeekLeft">« 5s</div>
+              <div class="overlay-video__seekHint overlay-video__seekHint--right" id="overlaySeekRight">5s »</div>
+              <div class="overlay-video__controls">
+                <button class="overlay-video__playBtn" id="overlayVideoPlayBtn"
+                        aria-label="Play or pause"></button>
+                <div class="overlay-video__progress" id="overlayVideoProgress">
+                  <div class="overlay-video__progressFill" id="overlayVideoProgressFill"></div>
+                </div>
+                <div class="overlay-video__time" id="overlayVideoTime">0:00 / 0:00</div>
+              </div>
+            </div>`;
+          break;
+        }
+
+        case 'audio': {
+          const bars = Array.from({ length: 26 }, (_, i) => {
+            const h = 10 + Math.random() * 24;
+            return `<div class="overlay-cassette__bar" data-bar="${i}" style="height:${h}px"></div>`;
+          }).join('');
+
+          html = `
+            <div class="overlay-audio">
+              <audio id="overlayAudio" src="${escAttr(memory.fileURL)}" preload="none"></audio>
+              <div class="overlay-cassette">
+                <div class="overlay-cassette__label">${escHtml(memory.title)}</div>
+                <div class="overlay-cassette__reels">
+                  <div class="overlay-cassette__reel" id="reelL"></div>
+                  <div class="overlay-cassette__waveform">${bars}</div>
+                  <div class="overlay-cassette__reel" id="reelR"></div>
+                </div>
+                <button class="overlay-cassette__play" id="audioPlayBtn"
+                        aria-label="Play / pause"></button>
+              </div>
+            </div>`;
+          break;
+        }
+
+        default:
+          html = `
+            <div class="overlay-photo">
+              <img class="overlay-photo__img"
+                   src="${escAttr(memory.thumbnail || memory.fileURL)}"
+                   alt="${escAttr(memory.title)}">
+            </div>`;
+      }
+
+      overlayStage.innerHTML = html;
+
+      /* Wire up audio controls after DOM is ready */
+      if (memory.type === 'audio') {
+        const audioEl   = document.getElementById('overlayAudio');
+        const playBtn   = document.getElementById('audioPlayBtn');
+        const reelL     = document.getElementById('reelL');
+        const reelR     = document.getElementById('reelR');
+        const bars      = overlayStage.querySelectorAll('.overlay-cassette__bar');
+
+        if (audioEl && playBtn) {
+          playBtn.addEventListener('click', () => {
+            if (audioEl.paused) {
+              audioEl.play();
+              playBtn.classList.add('is-playing');
+              reelL?.classList.add('is-spinning');
+              reelR?.classList.add('is-spinning');
+              bars.forEach(b => b.classList.add('is-active'));
+            } else {
+              audioEl.pause();
+              playBtn.classList.remove('is-playing');
+              reelL?.classList.remove('is-spinning');
+              reelR?.classList.remove('is-spinning');
+              bars.forEach(b => b.classList.remove('is-active'));
+            }
+          });
+          audioEl.addEventListener('ended', () => {
+            playBtn.classList.remove('is-playing');
+            reelL?.classList.remove('is-spinning');
+            reelR?.classList.remove('is-spinning');
+            bars.forEach(b => b.classList.remove('is-active'));
+          });
+        }
+      }
+
+      /* Wire up custom video controls after DOM is ready */
+      if (memory.type === 'video') {
+        const videoEl      = document.getElementById('overlayVideo');
+        const playBtn      = document.getElementById('overlayVideoPlayBtn');
+        const progress     = document.getElementById('overlayVideoProgress');
+        const progressFill = document.getElementById('overlayVideoProgressFill');
+        const timeLabel    = document.getElementById('overlayVideoTime');
+
+        if (videoEl) {
+          videoEl.muted = false; // plays with sound, per the overhaul spec
+
+          videoEl.play()
+            .then(() => playBtn?.classList.add('is-playing'))
+            .catch(() => {
+              // Browser blocked sound-on autoplay — leave paused, user taps play.
+              playBtn?.classList.remove('is-playing');
+            });
+
+          playBtn?.addEventListener('click', () => {
+            if (videoEl.paused) {
+              videoEl.play();
+              playBtn.classList.add('is-playing');
+            } else {
+              videoEl.pause();
+              playBtn.classList.remove('is-playing');
+            }
+          });
+
+          videoEl.addEventListener('timeupdate', () => {
+            if (!videoEl.duration) return;
+            const pct = (videoEl.currentTime / videoEl.duration) * 100;
+            if (progressFill) progressFill.style.width = `${pct}%`;
+            if (timeLabel) {
+              timeLabel.textContent = `${formatTime(videoEl.currentTime)} / ${formatTime(videoEl.duration)}`;
+            }
+          });
+
+          videoEl.addEventListener('ended', () => playBtn?.classList.remove('is-playing'));
+
+          progress?.addEventListener('click', e => {
+            if (!videoEl.duration) return;
+            const rect  = progress.getBoundingClientRect();
+            const ratio = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+            videoEl.currentTime = ratio * videoEl.duration;
+          });
+
+          /* ─── Amber shimmer placeholder: hide once real frames arrive ─── */
+          const shimmerEl = document.getElementById('overlayVideoShimmer');
+          if (videoEl.readyState >= 2) {
+            shimmerEl?.classList.add('is-hidden');
+          } else {
+            videoEl.addEventListener('loadeddata', () => {
+              shimmerEl?.classList.add('is-hidden');
+            }, { once: true });
+          }
+
+          /* ─── Double-tap seek: left 30% = -5s, right 30% = +5s ─── */
+          let lastTapTime = 0;
+          let lastTapZone = null;
+
+          videoEl.addEventListener('touchend', e => {
+            const rect  = videoEl.getBoundingClientRect();
+            const touch = e.changedTouches[0];
+            const relX  = (touch.clientX - rect.left) / rect.width;
+
+            let zone = null;
+            if (relX <= 0.3)      zone = 'left';
+            else if (relX >= 0.7) zone = 'right';
+            else return; // middle third stays free for normal taps
+
+            const now = Date.now();
+            if (now - lastTapTime < 300 && lastTapZone === zone) {
+              e.preventDefault();
+              if (zone === 'left') {
+                videoEl.currentTime = Math.max(0, videoEl.currentTime - 5);
+              } else {
+                videoEl.currentTime = Math.min(videoEl.duration || Infinity, videoEl.currentTime + 5);
+              }
+              showSeekHint(zone);
+              lastTapTime = 0;
+              lastTapZone = null;
+            } else {
+              lastTapTime = now;
+              lastTapZone = zone;
+            }
+          }, { passive: false });
+        }
+      }
+    }
+
+    function updateOverlayNav() {
+      const all = getAllMemories();
+      const idx = all.findIndex(m => m.id === currentMemory?.id);
+      overlayPrev.classList.toggle('is-available', idx > 0);
+      overlayNext.classList.toggle('is-available', idx < all.length - 1);
+    }
+
+    function navigateOverlay(dir) {
+      const all = getAllMemories();
+      const idx = all.findIndex(m => m.id === currentMemory?.id);
+      const next = dir === 'prev' ? all[idx - 1] : all[idx + 1];
+      if (!next) return;
+      currentMemory = next;
+      renderOverlayContent(next);
+      updateOverlayNav();
+      clearTimeout(lumiTimerHandle);
+      lumiTimerHandle = setTimeout(() => {
+        const moodMap = { peaceful:'idle', hopeful:'excited', melancholy:'melancholy', dark:'melancholy', passionate:'curious' };
+        lumi?.setState(moodMap[next.mood] || 'idle');
+      }, 3000);
+    }
+
+    /* ─── Overlay event wiring ─── */
+    overlayClose.addEventListener('click', closeOverlay);
+    overlayPrev.addEventListener('click',  () => navigateOverlay('prev'));
+    overlayNext.addEventListener('click',  () => navigateOverlay('next'));
+
+    /* Close on backdrop click */
+    document.getElementById('overlayBg').addEventListener('click', closeOverlay);
+
+    /* Keyboard */
+    document.addEventListener('keydown', e => {
+      if (!overlay.classList.contains('is-open')) return;
+      if (e.key === 'Escape')      closeOverlay();
+      if (e.key === 'ArrowLeft')   navigateOverlay('prev');
+      if (e.key === 'ArrowRight')  navigateOverlay('next');
+    });
+
+    /* ─── Touch: horizontal swipe = prev/next, vertical swipe-down = dismiss ─── */
+    overlay.addEventListener('touchstart', e => {
+      touchStartX    = e.touches[0].pageX;
+      touchStartY    = e.touches[0].pageY;
+      isDraggingDown = false;
+    }, { passive: true });
+
+    overlay.addEventListener('touchmove', e => {
+      const dx = e.touches[0].pageX - touchStartX;
+      const dy = e.touches[0].pageY - touchStartY;
+
+      // Only engage drag-to-dismiss once a downward drag clearly dominates —
+      // keeps left/right swipe-nav from getting hijacked.
+      if (dy > 10 && dy > Math.abs(dx)) {
+        isDraggingDown = true;
+        e.preventDefault();
+        const progress = Math.min(dy / (window.innerHeight * 0.6), 1);
+        overlayStage.style.transition = 'none';
+        overlayStage.style.transform  = `translateY(${dy}px) scale(${1 - progress * 0.08})`;
+        overlay.style.setProperty('--overlay-bg-opacity', `${1 - progress * 0.6}`);
+      }
+    }, { passive: false });
+
+    overlay.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].pageX - touchStartX;
+      const dy = e.changedTouches[0].pageY - touchStartY;
+
+      if (isDraggingDown) {
+        overlayStage.style.transition = 'transform 0.3s var(--ease-soft, ease)';
+
+        if (dy > DISMISS_THRESHOLD) {
+          // Past the threshold — finish the swipe off-screen, then close.
+          overlayStage.style.transform = `translateY(${window.innerHeight}px) scale(0.9)`;
+          setTimeout(() => {
+            closeOverlay();
+            overlayStage.style.transition = '';
+            overlayStage.style.transform  = '';
+            overlay.style.removeProperty('--overlay-bg-opacity');
+          }, 260);
+        } else {
+          // Didn't clear the threshold — snap back into place.
+          overlayStage.style.transform = 'translateY(0) scale(1)';
+          overlay.style.removeProperty('--overlay-bg-opacity');
+          setTimeout(() => { overlayStage.style.transition = ''; }, 300);
+        }
+        isDraggingDown = false;
+        return;
+      }
+
+      if (Math.abs(dx) > 55) navigateOverlay(dx > 0 ? 'prev' : 'next');
+    }, { passive: true });
+
+    /* ════════════════════════════════════════
+       TOAST
+    ════════════════════════════════════════ */
+    let toastTimer = null;
+    function showToastMsg(msg) {
+      const toast = document.getElementById('newToast');
+      toast.textContent = msg;
+      toast.classList.add('is-visible');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 4000);
+    }
+
+    /* ─── Utilities ─── */
+    function showSeekHint(side) {
+      const el = document.getElementById(side === 'left' ? 'overlaySeekLeft' : 'overlaySeekRight');
+      if (!el) return;
+      el.classList.remove('is-flashing');
+      void el.offsetWidth; // restart animation if tapped again quickly
+      el.classList.add('is-flashing');
+    }
+    function escHtml(s) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(s || ''));
+      return d.innerHTML;
+    }
+    function escAttr(s) {
+      return String(s || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function formatTime(sec) {
+      if (!isFinite(sec)) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+  </script>
+</body>
+</html>

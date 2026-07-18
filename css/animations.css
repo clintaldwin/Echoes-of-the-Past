@@ -1,0 +1,249 @@
+/* ===================================================
+   ECHOES — animations.css
+   All keyframes, transitions, and motion design
+   =================================================== */
+
+/* ─── Grain Shift ─── */
+@keyframes grainShift {
+  0%   { transform: translate(0, 0); }
+  10%  { transform: translate(-2%, -3%); }
+  20%  { transform: translate(3%, 1%); }
+  30%  { transform: translate(-1%, 4%); }
+  40%  { transform: translate(2%, -2%); }
+  50%  { transform: translate(-4%, 2%); }
+  60%  { transform: translate(1%, -1%); }
+  70%  { transform: translate(-3%, 3%); }
+  80%  { transform: translate(4%, -4%); }
+  90%  { transform: translate(-2%, 1%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ─── Fog Drift ─── */
+@keyframes fogDrift {
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+  25%  { transform: translate(60px, 30px) scale(1.08) rotate(3deg); }
+  50%  { transform: translate(120px, -20px) scale(1) rotate(-2deg); }
+  75%  { transform: translate(40px, 50px) scale(1.05) rotate(2deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
+
+/* ─── Lumi Float (idle) ─── */
+@keyframes lumiFloat {
+  0%, 100% { transform: translateY(0) rotate(-2deg) scaleY(1); }
+  25%       { transform: translateY(-10px) rotate(1deg) scaleY(0.97); }
+  50%       { transform: translateY(-14px) rotate(-1deg) scaleY(1.02); }
+  75%       { transform: translateY(-6px) rotate(2deg) scaleY(0.99); }
+}
+
+/* ─── Lumi Spin (excited) ─── */
+@keyframes lumiSpin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ─── Lumi Bob (greeting) ─── */
+@keyframes lumiBob {
+  0%, 100% { transform: translateY(0); }
+  30%       { transform: translateY(-18px); }
+  60%       { transform: translateY(-8px); }
+}
+
+/* ─── Lumi Droop (melancholy) ─── */
+@keyframes lumiDroop {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(8px) rotate(3deg); }
+}
+
+/* ─── Lumi Flinch (startled) ─── */
+@keyframes lumiFlinch {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  20%  { transform: translate(-12px, -8px) rotate(-10deg); }
+  40%  { transform: translate(8px, 4px) rotate(5deg); }
+  60%  { transform: translate(-4px, -2px) rotate(-3deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* ─── Lumi Tilt (curious) ─── */
+@keyframes lumiTilt {
+  0%, 100% { transform: rotate(0deg); }
+  50%       { transform: rotate(15deg) translateY(-4px); }
+}
+
+/* ─── Lumi Sleep ─── */
+@keyframes lumiSleep {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%       { transform: scale(0.94) translateY(4px); }
+}
+
+/* ─── Memory Card Drift (JS drives x/y, CSS provides smoothing) ─── */
+.memory-card {
+  transition: transform 0.4s var(--ease-ghost),
+              opacity 0.6s ease,
+              filter 0.4s ease;
+}
+
+/* ─── Memory Card Bob (hover) ─── */
+@keyframes cardBob {
+  0%, 100% { transform: translateY(0) rotate(var(--card-rot, 0deg)); }
+  50%       { transform: translateY(-10px) rotate(var(--card-rot, 0deg)); }
+}
+
+/* ─── Memory Open Bloom ─── */
+@keyframes memoryBloom {
+  0%   { transform: scale(0.2); opacity: 0; border-radius: 50%; filter: blur(20px); }
+  50%  { border-radius: 20px; filter: blur(4px); }
+  70%  { transform: scale(1.04); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1); border-radius: 12px; }
+}
+
+@keyframes memoryClose {
+  0%   { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.2); opacity: 0; border-radius: 50%; filter: blur(20px); }
+}
+
+/* ─── Page Enter ─── */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* ─── Page Flip ─── */
+@keyframes pageFlipOut {
+  0%   { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
+  100% { transform: perspective(1200px) rotateY(-90deg); opacity: 0; }
+}
+
+@keyframes pageFlipIn {
+  0%   { transform: perspective(1200px) rotateY(90deg); opacity: 0; }
+  100% { transform: perspective(1200px) rotateY(0deg); opacity: 1; }
+}
+
+/* ─── Speech Bubble Pop ─── */
+@keyframes bubblePop {
+  0%   { transform: scale(0) translateY(10px); opacity: 0; }
+  65%  { transform: scale(1.06) translateY(-3px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes bubbleFade {
+  0%   { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.9) translateY(-8px); }
+}
+
+/* ─── Tagline Fade In ─── */
+@keyframes taglineFadeIn {
+  from { opacity: 0; transform: translateY(16px); letter-spacing: 0.15em; }
+  to   { opacity: 1; transform: translateY(0);    letter-spacing: 0.03em; }
+}
+
+/* ─── Gate Glow Pulse ─── */
+@keyframes gatePulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 0.85; transform: scale(1.08); }
+}
+
+/* ─── Button Enter ─── */
+@keyframes btnEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── ZZZ particles ─── */
+@keyframes zzz {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.8; }
+  100% { transform: translateY(-30px) translateX(10px) rotate(15deg); opacity: 0; }
+}
+
+/* ─── Sparkle trail ─── */
+@keyframes sparkle {
+  0%   { transform: scale(0) rotate(0deg); opacity: 1; }
+  50%  { transform: scale(1.2) rotate(180deg); opacity: 0.8; }
+  100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+
+/* ─── Wax Seal ─── */
+@keyframes waxSeal {
+  0%   { transform: scale(1.5) rotate(-10deg); opacity: 0; }
+  60%  { transform: scale(0.95) rotate(2deg); opacity: 1; }
+  80%  { transform: scale(1.02) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* ─── Bloom Reveal (gallery peek on hover) ─── */
+@keyframes peekReveal {
+  from { opacity: 0; filter: blur(12px); }
+  to   { opacity: 0.4; filter: blur(6px); }
+}
+
+/* ─── Cursor pulse ─── */
+@keyframes cursorPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%       { transform: translate(-50%, -50%) scale(1.3); }
+}
+
+/* ─── Progress line ─── */
+@keyframes progressGrow {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* ─── Gold flash (milestone) ─── */
+@keyframes goldFlash {
+  0%   { filter: brightness(1) saturate(1); }
+  30%  { filter: brightness(1.4) saturate(2) sepia(0.5); }
+  60%  { filter: brightness(1.2) saturate(1.5); }
+  100% { filter: brightness(1) saturate(1); }
+}
+
+/* ─── Tear drop (lumi cries) ─── */
+@keyframes tearDrop {
+  0%   { transform: translateY(0) scaleY(0); opacity: 1; }
+  100% { transform: translateY(40px) scaleY(1.5); opacity: 0; }
+}
+
+/* ─── Modal backdrop ─── */
+@keyframes backdropFadeIn {
+  from { opacity: 0; backdrop-filter: blur(0); }
+  to   { opacity: 1; backdrop-filter: blur(8px); }
+}
+
+/* ─── Vinyl spin ─── */
+@keyframes vinylSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Polaroid appear ─── */
+@keyframes polaroidDrop {
+  0%   { transform: translateY(-20px) rotate(var(--card-rot, 3deg)) scale(0.9); opacity: 0; }
+  70%  { transform: translateY(4px) rotate(var(--card-rot, 3deg)) scale(1.02); }
+  100% { transform: translateY(0) rotate(var(--card-rot, 3deg)) scale(1); opacity: 1; }
+}
+
+/* ─── Waveform pulse ─── */
+@keyframes waveformPulse {
+  0%, 100% { transform: scaleY(1); }
+  50%       { transform: scaleY(1.4); }
+}
+
+/* ─── "I missed you" splash ─── */
+@keyframes missedYou {
+  0%   { transform: scale(0.8) translateY(20px); opacity: 0; }
+  60%  { transform: scale(1.02) translateY(-4px); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* ─── Stars twinkle (witching hour) ─── */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50%       { opacity: 1; transform: scale(1.2); }
+}
