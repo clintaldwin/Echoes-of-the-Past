@@ -10,13 +10,13 @@ export const DRIVE_CONFIG = {
   // ① Google Cloud Console → APIs & Services → Credentials → Create API Key
   //   Restrict it: Application restriction = HTTP referrers → your Netlify domain
   //   API restriction = Google Drive API only
-  apiKey: 'YOUR_GOOGLE_API_KEY_HERE',
+  apiKey: 'AIzaSyAcHw2dVerFFiOGJeRajgaGOBAhDG3pwus',
 
   // ② Open your "MEMORIES LOVEY" folder in Google Drive
   //   Copy the long string from the URL after /folders/
   //   Example: drive.google.com/drive/folders/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs
   //                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  folderId: 'YOUR_MEMORIES_LOVEY_FOLDER_ID_HERE',
+  folderId: '1CjNDirbdvMA-HHryH_4DiRYEfk7jVqSS',
 
   // How often to silently check for new memories (milliseconds)
   // Default: every 2 minutes. Set to 0 to disable polling.
