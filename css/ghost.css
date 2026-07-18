@@ -1,0 +1,293 @@
+/* ===================================================
+   ECHOES — ghost.css
+   Lumi the Ghost NPC — all visual states & speech
+   =================================================== */
+
+/* ─── Lumi Container ─── */
+#lumi {
+  position: fixed;
+  z-index: var(--z-lumi);
+  pointer-events: all;
+  cursor: none;
+  width: 72px;
+  height: 90px;
+  will-change: transform;
+  transition: filter 0.8s ease;
+  top: max(20px, env(safe-area-inset-top));
+  right: max(30px, env(safe-area-inset-right));
+}
+
+#lumi svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 14px rgba(200, 230, 200, 0.75))
+          drop-shadow(0 0 28px rgba(200, 230, 200, 0.35));
+  transition: filter 0.6s ease;
+}
+
+/* ─── Hover interaction ─── */
+#lumi:hover svg {
+  filter: drop-shadow(0 0 20px rgba(200, 230, 200, 0.95))
+          drop-shadow(0 0 40px rgba(200, 230, 200, 0.5))
+          drop-shadow(0 0 60px rgba(212, 165, 90, 0.3));
+}
+
+/* ─── Lumi States ─── */
+
+/* Idle — gentle figure-8 float */
+#lumi.lumi--idle .lumi-body {
+  animation: lumiFloat 4.5s var(--ease-soft) infinite;
+  transform-origin: center bottom;
+}
+
+/* Curious — tilts toward hovered memory */
+#lumi.lumi--curious .lumi-body {
+  animation: lumiTilt 2.5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Excited — spins, sparkles */
+#lumi.lumi--excited .lumi-body {
+  animation: lumiSpin 0.8s var(--ease-spring) 1,
+             lumiFloat 3s var(--ease-soft) 0.8s infinite;
+}
+
+/* Melancholy — droops, dims */
+#lumi.lumi--melancholy .lumi-body {
+  animation: lumiDroop 3.5s ease-in-out infinite;
+}
+
+#lumi.lumi--melancholy svg {
+  filter: drop-shadow(0 0 8px rgba(150, 180, 150, 0.4))
+          drop-shadow(0 0 16px rgba(150, 180, 150, 0.2))
+          brightness(0.75);
+}
+
+/* Watching — barely moves */
+#lumi.lumi--watching .lumi-body {
+  animation: lumiFloat 8s var(--ease-soft) infinite;
+  opacity: 0.85;
+}
+
+/* Sleeping — curled, eyes closed, zzz */
+#lumi.lumi--sleeping .lumi-body {
+  animation: lumiSleep 2.8s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+#lumi.lumi--sleeping svg {
+  filter: drop-shadow(0 0 6px rgba(200, 230, 200, 0.3))
+          brightness(0.6);
+}
+
+/* Greeting — bobs toward user */
+#lumi.lumi--greeting .lumi-body {
+  animation: lumiBob 1.2s var(--ease-spring) 2,
+             lumiFloat 4s var(--ease-soft) 2.4s infinite;
+}
+
+/* Startled — quick flinch */
+#lumi.lumi--startled .lumi-body {
+  animation: lumiFlinch 0.5s var(--ease-spring) 1;
+}
+
+/* Guiding — drifts toward button */
+#lumi.lumi--guiding .lumi-body {
+  animation: lumiFloat 4s var(--ease-soft) infinite;
+}
+
+#lumi.lumi--guiding svg {
+  filter: drop-shadow(0 0 18px rgba(200, 230, 200, 0.85))
+          drop-shadow(0 0 36px rgba(212, 165, 90, 0.4));
+}
+
+/* Guest mode */
+#lumi.lumi--guest svg {
+  filter: drop-shadow(0 0 14px rgba(200, 230, 200, 0.65))
+          drop-shadow(0 0 28px rgba(200, 230, 200, 0.3))
+          saturate(0.8);
+}
+
+/* ─── Lumi Body parts (SVG classes) ─── */
+.lumi-body {
+  transform-origin: center;
+}
+
+.lumi-eyes .lumi-eye {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Sleeping eyes — closed */
+#lumi.lumi--sleeping .lumi-eye {
+  transform: scaleY(0.1);
+  transform-origin: center;
+}
+
+/* Excited eyes — wide */
+#lumi.lumi--excited .lumi-eye {
+  transform: scale(1.3);
+  transform-origin: center;
+}
+
+/* Melancholy eyes — half-closed */
+#lumi.lumi--melancholy .lumi-eye {
+  transform: scaleY(0.6) translateY(1px);
+  transform-origin: center;
+}
+
+/* ─── Lumi Aura ─── */
+.lumi-aura {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200, 230, 200, 0.15), transparent 70%);
+  pointer-events: none;
+  animation: gatePulse 3s ease-in-out infinite;
+}
+
+/* ─── Lumi Trail Particles ─── */
+.lumi-trail-particle {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: var(--z-lumi) - 1;
+  animation: sparkle 1.5s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+/* ─── ZZZ Bubbles (sleep) ─── */
+.lumi-zzz {
+  position: absolute;
+  font-family: var(--font-ghost);
+  font-size: 14px;
+  color: rgba(143, 175, 142, 0.7);
+  pointer-events: none;
+  animation: zzz 2s ease-out infinite;
+}
+
+.lumi-zzz:nth-child(2) { animation-delay: 0.7s; font-size: 11px; }
+.lumi-zzz:nth-child(3) { animation-delay: 1.4s; font-size: 9px; }
+
+/* ─── Speech Bubble ─── */
+.speech-bubble {
+  position: fixed;
+  z-index: calc(var(--z-lumi) + 1);
+  max-width: 180px;
+  padding: 10px 14px;
+  border-radius: 16px 16px 16px 4px;
+  background: rgba(251, 245, 230, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 165, 90, 0.35);
+  box-shadow: 0 4px 20px rgba(44, 36, 22, 0.12),
+              0 0 0 1px rgba(255, 252, 245, 0.8) inset;
+  pointer-events: none;
+  transform-origin: bottom left;
+}
+
+.speech-bubble p {
+  font-family: var(--font-ghost);
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--ink);
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+/* Bubble tail */
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 16px;
+  width: 12px;
+  height: 12px;
+  background: rgba(251, 245, 230, 0.92);
+  border-right: 1px solid rgba(212, 165, 90, 0.35);
+  border-bottom: 1px solid rgba(212, 165, 90, 0.35);
+  transform: rotate(45deg);
+  clip-path: polygon(0 0, 100% 100%, 100% 0);
+}
+
+.speech-bubble.bubble--enter {
+  animation: bubblePop 0.4s var(--ease-spring) forwards;
+}
+
+.speech-bubble.bubble--exit {
+  animation: bubbleFade 0.4s ease forwards;
+}
+
+/* ─── Lumi Sparkle Ring (excited) ─── */
+.lumi-sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: sparkle 1.2s ease-out forwards;
+}
+
+/* ─── Tear drops (sad) ─── */
+.lumi-tear {
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border-radius: 50% 50% 60% 60%;
+  background: rgba(150, 190, 200, 0.7);
+  pointer-events: none;
+  animation: tearDrop 1s ease-in forwards;
+}
+
+/* ─── Question mark bubble ─── */
+.lumi-question {
+  position: absolute;
+  top: -24px;
+  right: -8px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: rgba(212, 165, 90, 0.8);
+  animation: lumiBob 1.5s ease-in-out infinite;
+}
+
+/* ─── Lumi in entry gate (smaller, watching) ─── */
+.gate-lumi {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  width: 54px;
+  height: 68px;
+  z-index: var(--z-lumi);
+  opacity: 0.65;
+  transition: opacity 0.8s ease;
+}
+
+.gate-lumi:hover {
+  opacity: 1;
+}
+
+/* ─── Lumi on create page (watching textarea) ─── */
+.create-lumi {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  width: 60px;
+  height: 75px;
+  z-index: var(--z-lumi);
+  transition: right 0.8s var(--ease-ghost);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  #lumi {
+    width: 54px;
+    height: 68px;
+    top: 12px;
+    right: 16px;
+  }
+
+  .speech-bubble {
+    max-width: 150px;
+    font-size: 13px;
+  }
+}

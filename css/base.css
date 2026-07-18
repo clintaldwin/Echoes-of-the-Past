@@ -1,0 +1,345 @@
+/* ===================================================
+   ECHOES — base.css
+   Design system: variables, resets, typography, global
+   =================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Dancing+Script:wght@400;600&family=DM+Mono:wght@300;400&family=Playfair+Display:ital,wght@1,400;1,600&display=swap');
+
+/* ─── CSS Custom Properties ─── */
+:root {
+  /* Primary Palette */
+  --sage:        #8FAF8E;
+  --sage-light:  #C5D9C3;
+  --sage-dark:   #5A7A59;
+  --amber:       #D4A55A;
+  --amber-light: #EDD9A3;
+  --amber-glow:  #F5C87A;
+
+  /* Atmospheric */
+  --fog:         rgba(255, 252, 245, 0.6);
+  --ink:         #2C2416;
+  --ghost-glow:  rgba(200, 230, 200, 0.35);
+
+  /* Backgrounds */
+  --bg-main:     #F5EFE0;
+  --bg-deep:     #1A1A14;
+  --paper:       #FBF5E6;
+
+  /* Typography scale */
+  --font-display:    'Cormorant Garamond', Georgia, serif;
+  --font-body:       'Lora', Georgia, serif;
+  --font-ghost:      'Dancing Script', cursive;
+  --font-mono:       'DM Mono', 'Courier New', monospace;
+  --font-accent:     'Playfair Display', Georgia, serif;
+
+  /* Spacing */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  40px;
+  --space-2xl: 64px;
+
+  /* Motion */
+  --ease-soft:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-spring:  cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-ghost:   cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.2s;
+  --duration-med:  0.5s;
+  --duration-slow: 1.2s;
+
+  /* Depth */
+  --shadow-soft:  0 4px 24px rgba(44, 36, 22, 0.12);
+  --shadow-card:  0 8px 40px rgba(44, 36, 22, 0.18);
+  --shadow-deep:  0 20px 80px rgba(44, 36, 22, 0.35);
+
+  /* Borders */
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  20px;
+  --radius-xl:  32px;
+  --radius-full: 9999px;
+
+  /* Z-layers */
+  --z-bg:       0;
+  --z-cards:    10;
+  --z-particles:15;
+  --z-ui:       20;
+  --z-lumi:     30;
+  --z-modal:    40;
+  --z-cursor:   9999;
+}
+
+/* ─── Resets ─── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-main);
+  color: var(--ink);
+  min-height: 100vh;
+  cursor: none;
+  position: relative;
+}
+
+/* overflow:hidden only on pages that don't need scrolling */
+.gallery-body,
+.gate-body { overflow: hidden; }
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: none;
+  border: none;
+  background: none;
+}
+
+img, svg {
+  max-width: 100%;
+  display: block;
+}
+
+/* ─── Custom Cursor ─── */
+#cursor {
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, rgba(212, 165, 90, 0.7), rgba(212, 165, 90, 0.1) 60%, transparent);
+  border-radius: 50%;
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: var(--z-cursor);
+  mix-blend-mode: multiply;
+  /* transform driven entirely by cursor.js — no static value here */
+  opacity: 0; /* starts hidden; JS reveals on first mousemove */
+  transition: width 0.3s var(--ease-soft),
+              height 0.3s var(--ease-soft),
+              background 0.3s ease,
+              opacity 0.2s ease;
+  will-change: transform;
+}
+
+#cursor.cursor--hover {
+  width: 36px;
+  height: 36px;
+  background: radial-gradient(circle, rgba(212, 165, 90, 0.9), rgba(212, 165, 90, 0.2) 60%, transparent);
+}
+
+#cursor.cursor--lumi {
+  width: 28px;
+  height: 28px;
+  background: radial-gradient(circle, rgba(143, 175, 142, 0.8), rgba(143, 175, 142, 0.2) 60%, transparent);
+  animation: cursorPulse 1.5s ease-in-out infinite;
+}
+
+#cursor.cursor--write {
+  width: 4px;
+  height: 28px;
+  border-radius: 2px;
+  background: rgba(44, 36, 22, 0.5);
+  transform: translate(-50%, -85%) rotate(0deg);
+}
+
+/* ─── Grain Overlay ─── */
+.grain-overlay {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: calc(var(--z-cursor) - 1);
+  pointer-events: none;
+  opacity: 0.065;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: grainShift 0.4s steps(1) infinite;
+}
+
+/* ─── Vignette ─── */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-ui) - 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 30%,
+    rgba(20, 15, 5, 0.25) 70%,
+    rgba(20, 15, 5, 0.55) 100%
+  );
+}
+
+/* ─── Fog Elements ─── */
+.fog-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.fog {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: fogDrift linear infinite;
+  will-change: transform;
+}
+
+.fog-1 {
+  width: 600px; height: 400px;
+  background: rgba(245, 239, 224, 0.4);
+  top: -100px; left: -200px;
+  animation-duration: 35s;
+  animation-delay: 0s;
+}
+
+.fog-2 {
+  width: 500px; height: 350px;
+  background: rgba(197, 217, 195, 0.25);
+  bottom: -80px; right: -150px;
+  animation-duration: 45s;
+  animation-delay: -15s;
+  animation-direction: reverse;
+}
+
+.fog-3 {
+  width: 450px; height: 300px;
+  background: rgba(237, 217, 163, 0.2);
+  top: 30%; left: 30%;
+  animation-duration: 55s;
+  animation-delay: -25s;
+}
+
+/* ─── SVG Filter for Grain (embedded) ─── */
+.svg-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* ─── Typography ─── */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.text-ghost {
+  font-family: var(--font-ghost);
+  font-weight: 400;
+}
+
+.text-mono {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
+}
+
+.text-accent {
+  font-family: var(--font-accent);
+  font-style: italic;
+}
+
+/* ─── Frosted Glass utility ─── */
+.glass {
+  background: rgba(251, 245, 230, 0.65);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid rgba(255, 252, 245, 0.5);
+}
+
+.glass-dark {
+  background: rgba(26, 26, 20, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 252, 245, 0.1);
+}
+
+/* ─── Paper Texture Card ─── */
+.paper-texture {
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04' numOctaves='5' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeBlend in='SourceGraphic' mode='multiply'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(143, 175, 142, 0.4);
+  border-radius: 3px;
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: rgba(212, 165, 90, 0.3);
+  color: var(--ink);
+}
+
+/* ─── Focus ring ─── */
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Canvas layers ─── */
+.particle-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-particles);
+}
+
+/* ─── Page animation wrapper ─── */
+.page-enter {
+  animation: pageEnter var(--duration-slow) var(--ease-soft) forwards;
+}
+
+/* ─── Utility classes ─── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pointer-none {
+  pointer-events: none;
+}

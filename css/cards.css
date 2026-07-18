@@ -1,0 +1,615 @@
+/* ===================================================
+   ECHOES — cards.css
+   All 5 memory card types with full visual treatment
+   =================================================== */
+
+/* ─── Base Card Structure ─── */
+.memory-card {
+  --card-rot: 0deg;
+  --card-tint: var(--paper);
+  --card-w: 200px;
+  --card-h: 240px;
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: var(--radius-md);
+  position: absolute;
+  transform: rotate(var(--card-rot));
+}
+
+.card-inner {
+  width: 100%;
+  height: 100%;
+  background: var(--card-tint);
+  border-radius: inherit;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Card Label strip (bottom) ─── */
+.card-label {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  padding: 8px 12px;
+  background: transparent;
+}
+
+.card-label__title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.02em;
+}
+
+.card-label__date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(44, 36, 22, 0.45);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+/* ─── Mood indicator dot ─── */
+.card-mood {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  z-index: 2;
+}
+
+.card-mood--peaceful   { background: #8FAF8E; box-shadow: 0 0 6px rgba(143,175,142,0.6); }
+.card-mood--passionate { background: #D4605A; box-shadow: 0 0 6px rgba(212,96,90,0.6); }
+.card-mood--melancholy { background: #7A9AB5; box-shadow: 0 0 6px rgba(122,154,181,0.6); }
+.card-mood--hopeful    { background: #D4A55A; box-shadow: 0 0 6px rgba(212,165,90,0.6); }
+.card-mood--dark       { background: #4A4A5A; box-shadow: 0 0 6px rgba(74,74,90,0.6); }
+
+/* ═══════════════════════════════════════
+   TYPE 1: 📷 PHOTO — Polaroid
+   ═══════════════════════════════════════ */
+.memory-card--photo {
+  --card-w: 190px;
+  --card-h: 225px;
+}
+
+.memory-card--photo .card-inner {
+  background: #fff;
+  padding: 10px 10px 40px 10px;
+  box-shadow: var(--shadow-card),
+              0 2px 8px rgba(44, 36, 22, 0.1);
+}
+
+.card-photo__image {
+  width: 100%;
+  height: 155px;
+  object-fit: cover;
+  display: block;
+  filter: contrast(1.05) brightness(0.97) saturate(0.9);
+  position: relative;
+}
+
+/* Film grain on photo */
+.card-photo__image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.12'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.card-photo__caption {
+  position: absolute;
+  bottom: 12px;
+  left: 10px; right: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+  color: rgba(44, 36, 22, 0.5);
+  letter-spacing: 0.06em;
+}
+
+/* Sepia tint overlay */
+.card-photo__tint {
+  position: absolute;
+  inset: 10px 10px 40px 10px;
+  background: rgba(212, 165, 90, 0.06);
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+/* No image placeholder */
+.card-photo__placeholder {
+  width: 100%;
+  height: 155px;
+  background: linear-gradient(135deg, var(--sage-light) 0%, var(--amber-light) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════
+   TYPE 2: 📝 JOURNAL — Torn Paper
+   ═══════════════════════════════════════ */
+.memory-card--journal {
+  --card-w: 210px;
+  --card-h: 250px;
+}
+
+.memory-card--journal .card-inner {
+  background: var(--paper);
+  padding: 16px 14px 40px;
+  position: relative;
+}
+
+/* Ruled lines texture */
+.memory-card--journal .card-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 23px,
+    rgba(143, 175, 142, 0.2) 23px,
+    rgba(143, 175, 142, 0.2) 24px
+  );
+  background-position: 0 40px;
+  pointer-events: none;
+}
+
+/* Torn edge on left */
+.memory-card--journal .card-inner::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(212, 165, 90, 0.4) 10%,
+    rgba(212, 165, 90, 0.4) 90%,
+    transparent
+  );
+}
+
+/* Drop cap */
+.card-journal__dropcap {
+  float: left;
+  font-family: var(--font-accent);
+  font-size: 3.2em;
+  line-height: 0.75;
+  padding-right: 6px;
+  color: var(--amber);
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.card-journal__text {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  line-height: 1.9;
+  color: var(--ink);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 7;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+/* ═══════════════════════════════════════
+   TYPE 3: 🎵 AUDIO — Cassette Tape
+   ═══════════════════════════════════════ */
+.memory-card--audio {
+  --card-w: 220px;
+  --card-h: 150px;
+}
+
+.memory-card--audio .card-inner {
+  background: #1E1B2A;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-radius: var(--radius-md);
+}
+
+.card-audio__label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--amber-glow);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Waveform bars */
+.card-audio__waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 40px;
+}
+
+.card-audio__bar {
+  flex: 1;
+  background: var(--amber);
+  border-radius: 2px;
+  min-height: 4px;
+  opacity: 0.7;
+  animation: waveformPulse ease-in-out infinite;
+}
+
+.card-audio__bar:nth-child(odd) {
+  animation-duration: 1.2s;
+}
+.card-audio__bar:nth-child(even) {
+  animation-duration: 0.9s;
+  animation-delay: 0.2s;
+}
+
+/* Paused (not playing) */
+.memory-card--audio:not(.is-playing) .card-audio__bar {
+  animation-play-state: paused;
+}
+
+.card-audio__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Vinyl record play button */
+.card-audio__play {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(212, 165, 90, 0.8) 0deg 120deg,
+    rgba(44, 36, 22, 0.8) 120deg 240deg,
+    rgba(143, 175, 142, 0.6) 240deg 360deg
+  );
+  display: flex; align-items: center; justify-content: center;
+  cursor: none;
+  transition: transform 0.3s ease;
+  position: relative;
+}
+
+.card-audio__play::after {
+  content: '';
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #1E1B2A;
+}
+
+.memory-card--audio:hover .card-audio__play {
+  animation: vinylSpin 2s linear infinite;
+}
+
+.card-audio__duration {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(212, 165, 90, 0.6);
+  letter-spacing: 0.1em;
+}
+
+/* Progress line */
+.card-audio__progress {
+  height: 2px;
+  background: rgba(212, 165, 90, 0.15);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.card-audio__progress-fill {
+  height: 100%;
+  background: var(--amber);
+  width: 35%;
+  border-radius: 1px;
+  transition: width 0.1s linear;
+}
+
+/* ═══════════════════════════════════════
+   TYPE 4: ✏️ DOODLE — Graph Paper
+   ═══════════════════════════════════════ */
+.memory-card--doodle {
+  --card-w: 195px;
+  --card-h: 210px;
+}
+
+.memory-card--doodle .card-inner {
+  background: #FAFCFF;
+  background-image:
+    linear-gradient(rgba(143, 175, 142, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(143, 175, 142, 0.15) 1px, transparent 1px);
+  background-size: 14px 14px;
+  padding: 10px;
+  position: relative;
+}
+
+.card-doodle__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Pushpin */
+.card-doodle__pin {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #D44A40, #8B2020);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+
+/* Wrinkled edges via SVG filter */
+.card-doodle__image-wrap {
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  filter: url('#wrinkle');
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ═══════════════════════════════════════
+   TYPE 5: 🎞️ VIDEO — Film Strip
+   ═══════════════════════════════════════ */
+.memory-card--video {
+  --card-w: 200px;
+  --card-h: 200px;
+}
+
+.memory-card--video .card-inner {
+  background: #0A0A08;
+  position: relative;
+  overflow: visible;
+}
+
+/* Film strip borders */
+.memory-card--video .card-inner::before,
+.memory-card--video .card-inner::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 16px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #1A1A14 0px,
+    #1A1A14 8px,
+    transparent 8px,
+    transparent 14px
+  );
+  z-index: 2;
+}
+
+.memory-card--video .card-inner::before { left: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.memory-card--video .card-inner::after  { right: 0; border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+
+.card-video__thumbnail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(0.4) contrast(1.05) brightness(0.85);
+  border-radius: inherit;
+}
+
+.card-video__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.5));
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.card-video__play {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(212, 165, 90, 0.8);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s var(--ease-spring), background 0.2s ease;
+}
+
+.card-video__play::after {
+  content: '';
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 14px solid rgba(44, 36, 22, 0.9);
+  margin-left: 3px;
+}
+
+.memory-card--video:hover .card-video__play {
+  transform: translate(-50%, -50%) scale(1.15);
+  background: rgba(212, 165, 90, 0.95);
+}
+
+/* Age border vignette */
+.card-video__age {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   CARD IN MODAL / DETAIL VIEW
+   ═══════════════════════════════════════ */
+.memory-detail {
+  padding: var(--space-2xl);
+  background: var(--paper);
+  position: relative;
+  min-height: 400px;
+}
+
+/* Age gradient at corners */
+.memory-detail::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: radial-gradient(
+    ellipse at 0 0,
+    rgba(212, 165, 90, 0.08) 0%,
+    transparent 50%
+  ),
+  radial-gradient(
+    ellipse at 100% 100%,
+    rgba(212, 165, 90, 0.06) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+.memory-detail__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-xl);
+  gap: var(--space-md);
+}
+
+.memory-detail__title {
+  font-family: var(--font-accent);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-style: italic;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.memory-detail__meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(44, 36, 22, 0.45);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.memory-detail__image-wrap {
+  margin: 0 auto var(--space-xl);
+  max-width: 500px;
+  position: relative;
+}
+
+.memory-detail__image {
+  width: 100%;
+  border-radius: var(--radius-md);
+  filter: contrast(1.05) brightness(0.96) saturate(0.92);
+  box-shadow: var(--shadow-card);
+}
+
+/* Tape corners on detail images */
+.memory-detail__tape {
+  position: absolute;
+  width: 36px; height: 14px;
+  background: rgba(237, 217, 163, 0.7);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: 0 1px 3px rgba(44,36,22,0.15);
+}
+
+.memory-detail__tape--tl { top: -7px; left: 16px; transform: rotate(-3deg); }
+.memory-detail__tape--tr { top: -7px; right: 16px; transform: rotate(3deg); }
+.memory-detail__tape--bl { bottom: -7px; left: 16px; transform: rotate(2deg); }
+.memory-detail__tape--br { bottom: -7px; right: 16px; transform: rotate(-2deg); }
+
+.memory-detail__text {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--ink);
+}
+
+.memory-detail__text p + p {
+  margin-top: var(--space-md);
+}
+
+/* Drop cap in detail */
+.memory-detail__text > p:first-child::first-letter {
+  float: left;
+  font-family: var(--font-accent);
+  font-size: 3.4em;
+  line-height: 0.72;
+  padding-right: 8px;
+  color: var(--amber);
+  font-style: italic;
+  margin-top: 6px;
+}
+
+.memory-detail__tags {
+  margin-top: var(--space-xl);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.memory-detail__tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(143, 175, 142, 0.15);
+  color: var(--sage-dark);
+  border: 1px solid rgba(143, 175, 142, 0.3);
+}
+
+/* ─── Card hover info tooltip ─── */
+.card-tooltip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(251, 245, 230, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 165, 90, 0.3);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 20;
+}
+
+.memory-card:hover .card-tooltip {
+  opacity: 1;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .memory-card {
+    --card-w: 160px;
+    --card-h: 190px;
+  }
+
+  .memory-detail {
+    padding: var(--space-xl) var(--space-lg);
+  }
+
+  .memory-detail__title {
+    font-size: 1.4rem;
+  }
+}
