@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Echoes — A living memory gallery for two.">
+  <title>Echoes</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&family=Dancing+Script:wght@400;500&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/ghost.css">
+  <link rel="stylesheet" href="css/themes.css">
+
+  <style>
+    .gate-body { background: #0E0D0A; overflow: hidden; }
+
+    /* ─── Central glow ─── */
+    .gate-glow {
+      position: fixed;
+      width: 380px; height: 380px;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -55%);
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(212, 165, 90, 0.15) 0%,
+        rgba(143, 175, 142, 0.07) 45%,
+        transparent 70%
+      );
+      filter: blur(32px);
+      animation: gatePulse 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .gate-orb {
+      position: fixed;
+      width: 90px; height: 90px;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -75%);
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 40% 35%,
+        rgba(245, 200, 120, 0.3),
+        rgba(212, 165, 90, 0.1) 55%,
+        transparent 75%
+      );
+      filter: blur(10px);
+      animation: gatePulse 3s ease-in-out infinite;
+      animation-delay: 0.6s;
+      pointer-events: none;
+    }
+
+    /* ─── Layout ─── */
+    .gate-main {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 40px 32px;
+      gap: 0;
+    }
+
+    /* ─── Return banner ─── */
+    .return-banner {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(143, 175, 142, 0.38);
+      margin-bottom: 18px;
+      animation: taglineFadeIn 2s ease 0.4s both;
+    }
+
+    /* ─── Tagline ─── */
+    .gate-tagline {
+      font-family: var(--font-display);
+      font-size: clamp(1.05rem, 3.5vw, 1.85rem);
+      font-weight: 300;
+      font-style: italic;
+      color: rgba(237, 217, 163, 0.8);
+      letter-spacing: 0.02em;
+      line-height: 1.45;
+      max-width: 500px;
+      animation: taglineFadeIn 2.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.7s both;
+      text-shadow: 0 0 48px rgba(212, 165, 90, 0.18);
+    }
+
+    /* ─── Password input ─── */
+    .gate-password-wrap {
+      margin-top: 38px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      animation: btnEnter 1.3s ease 1.9s both;
+    }
+
+    .gate-password {
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 2.6vw, 1.2rem);
+      font-style: italic;
+      font-weight: 300;
+      color: rgba(237, 217, 163, 0.85);
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(143, 175, 142, 0.28);
+      outline: none;
+      padding: 10px 6px 8px;
+      width: 230px;
+      text-align: center;
+      letter-spacing: 0.18em;
+      transition: border-color 0.4s ease;
+      caret-color: rgba(212, 165, 90, 0.75);
+    }
+    .gate-password::placeholder {
+      color: rgba(143, 175, 142, 0.35);
+      font-style: italic;
+      letter-spacing: 0.1em;
+    }
+    .gate-password:focus {
+      border-bottom-color: rgba(143, 175, 142, 0.6);
+    }
+    .gate-password.is-error {
+      border-bottom-color: rgba(190, 80, 80, 0.5);
+      animation: inputShake 0.45s ease both;
+    }
+
+    .gate-wrong-msg {
+      font-family: var(--font-ghost);
+      font-size: 0.95rem;
+      color: rgba(190, 90, 90, 0.72);
+      opacity: 0;
+      min-height: 1.4em;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+      font-style: italic;
+    }
+    .gate-wrong-msg.is-visible { opacity: 1; }
+
+    /* ─── Enter button ─── */
+    .gate-enter {
+      margin-top: 44px;
+      font-family: var(--font-display);
+      font-size: clamp(0.9rem, 2.2vw, 1.1rem);
+      font-style: italic;
+      font-weight: 300;
+      color: rgba(143, 175, 142, 0.68);
+      letter-spacing: 0.22em;
+      text-transform: lowercase;
+      background: none;
+      border: 1px solid rgba(143, 175, 142, 0.18);
+      cursor: none;
+      padding: 14px 34px;
+      border-radius: 50px;
+      transition:
+        color 0.4s ease,
+        border-color 0.4s ease,
+        background 0.4s ease,
+        transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        box-shadow 0.4s ease;
+      animation: btnEnter 1.5s ease 2.1s both;
+      position: relative;
+      overflow: hidden;
+    }
+    .gate-enter::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(
+        circle at var(--mx, 50%) var(--my, 50%),
+        rgba(143, 175, 142, 0.1), transparent 70%
+      );
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .gate-enter:hover::before { opacity: 1; }
+    .gate-enter:hover {
+      color: rgba(143, 175, 142, 0.92);
+      border-color: rgba(143, 175, 142, 0.42);
+      background: rgba(143, 175, 142, 0.06);
+      transform: translateY(-3px) scale(1.03);
+      box-shadow:
+        0 8px 32px rgba(143, 175, 142, 0.1),
+        0 0 0 1px rgba(143, 175, 142, 0.14);
+    }
+    .gate-enter:active { transform: translateY(-1px) scale(0.99); }
+
+    /* ─── Gallery peek ghosts ─── */
+    .gallery-peek {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.9s ease;
+    }
+    .gallery-peek.is-visible { opacity: 1; }
+    .peek-ghost {
+      position: absolute;
+      border-radius: 10px;
+      background: rgba(251, 245, 230, 0.035);
+      border: 1px solid rgba(255, 252, 245, 0.05);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      animation: lumiFloat 7s ease-in-out infinite;
+    }
+    .peek-ghost:nth-child(1) { top:12vh; left:6vw;  width:100px; height:118px; animation-delay:0s; }
+    .peek-ghost:nth-child(2) { top:52vh; left:72vw; width:138px; height:158px; animation-delay:-2s; }
+    .peek-ghost:nth-child(3) { top:22vh; right:13vw; width:112px; height:128px; transform:rotate(3deg); animation-delay:-4s; }
+    .peek-ghost:nth-child(4) { bottom:18vh; left:18vw; width:90px; height:106px; transform:rotate(-2deg); animation-delay:-1.2s; }
+    .peek-ghost:nth-child(5) { top:40vh; left:40vw; width:125px; height:145px; animation-delay:-3s; }
+
+    /* ─── Signature ─── */
+    .gate-signature {
+      position: fixed;
+      bottom: max(22px, env(safe-area-inset-bottom));
+      right: max(26px, env(safe-area-inset-right));
+      font-family: var(--font-ghost);
+      font-size: 0.82rem;
+      color: rgba(143, 175, 142, 0.2);
+      z-index: 10;
+      pointer-events: none;
+      animation: btnEnter 2s ease 3.5s both;
+    }
+
+    /* ─── Page flip ─── */
+    .page-flip {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: #F5EFE0;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    /* ─── Shake ─── */
+    @keyframes inputShake {
+      0%   { transform: translateX(0); }
+      15%  { transform: translateX(-7px); }
+      30%  { transform: translateX(6px); }
+      45%  { transform: translateX(-5px); }
+      60%  { transform: translateX(4px); }
+      75%  { transform: translateX(-2px); }
+      90%  { transform: translateX(2px); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+</head>
+
+<body class="gate-body no-select">
+
+  <svg class="svg-filters" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="wrinkle">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02 0.06" numOctaves="3" seed="5" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <div id="cursor"></div>
+  <div class="grain-overlay" aria-hidden="true"></div>
+  <div class="vignette"      aria-hidden="true"></div>
+
+  <div class="fog-container" aria-hidden="true">
+    <div class="fog fog-1"></div>
+    <div class="fog fog-2"></div>
+    <div class="fog fog-3"></div>
+  </div>
+
+  <div class="gallery-peek" id="galleryPeek" aria-hidden="true">
+    <div class="peek-ghost"></div>
+    <div class="peek-ghost"></div>
+    <div class="peek-ghost"></div>
+    <div class="peek-ghost"></div>
+    <div class="peek-ghost"></div>
+  </div>
+
+  <div id="lumi-mount"></div>
+
+  <main class="gate-main" role="main">
+    <div class="gate-glow" aria-hidden="true"></div>
+    <div class="gate-orb"  aria-hidden="true"></div>
+
+    <div class="return-banner" id="returnBanner" style="display:none">you're back.</div>
+
+    <h1 class="gate-tagline" id="gateTagline">
+      Some places only exist when you remember them.
+    </h1>
+
+    <!-- Shown when NOT authenticated -->
+    <div class="gate-password-wrap" id="passwordWrap" style="display:none">
+      <input
+        type="password"
+        class="gate-password"
+        id="passwordInput"
+        placeholder="speak the date…"
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="Enter the shared password"
+      >
+      <div class="gate-wrong-msg" id="wrongMsg" aria-live="polite">that's not it.</div>
+    </div>
+
+    <!-- Shown when ALREADY authenticated -->
+    <button class="gate-enter" id="enterBtn" aria-label="Enter the memory gallery" style="display:none">
+      step inside
+    </button>
+  </main>
+
+  <div class="gate-signature" aria-hidden="true">echoes ✦</div>
+  <div class="page-flip" id="pageFlip" aria-hidden="true"></div>
+
+  <script type="module">
+    import { isAuthenticated, authenticate } from './js/auth.js';
+    import { initCursor }                    from './js/cursor.js';
+    import { initTheme }                     from './js/time-theme.js';
+    import { initLumi, lumi }                from './js/lumi.js';
+    import { initParticles }                 from './js/particles.js';
+    import { DRIVE }                         from './js/drive.js';
+    import { audioCtrl }                     from './js/audio.js';
+
+    initCursor();
+    initTheme();
+    initParticles();
+
+    const alreadyAuthed = isAuthenticated();
+    const isReturn      = DRIVE.isReturnVisit();
+
+    /* ─── Return visit copy ─── */
+    if (isReturn) {
+      const banner  = document.getElementById('returnBanner');
+      const tagline = document.getElementById('gateTagline');
+      if (banner)  banner.style.display = '';
+      if (tagline) tagline.textContent   = 'This place kept your memories safe.';
+    }
+
+    DRIVE.checkMissedYou().then(missed => {
+      if (missed) {
+        const tagline = document.getElementById('gateTagline');
+        if (tagline) tagline.textContent = 'You were away for a while. Welcome back.';
+      }
+    });
+
+    /* ─── Lumi ─── */
+    initLumi({
+      container: document.getElementById('lumi-mount') || document.body,
+      isGuest: false,
+      isReturn,
+      theme: document.body.getAttribute('data-theme') || 'evening'
+    });
+
+    /* ─── UI state ─── */
+    const enterBtn     = document.getElementById('enterBtn');
+    const passwordWrap = document.getElementById('passwordWrap');
+    const passwordInput= document.getElementById('passwordInput');
+    const wrongMsg     = document.getElementById('wrongMsg');
+    const peekEl       = document.getElementById('galleryPeek');
+
+    if (alreadyAuthed) {
+      enterBtn.style.display = '';
+      wireEnterButton();
+    } else {
+      passwordWrap.style.display = '';
+      setTimeout(() => passwordInput?.focus(), 2300);
+    }
+
+    /* ─── Password submit ─── */
+    passwordInput?.addEventListener('keydown', async e => {
+      if (e.key !== 'Enter' || !passwordInput.value) return;
+      e.preventDefault();
+
+      const ok = await authenticate(passwordInput.value);
+
+      if (ok) {
+        lumi?.setState('excited');
+        doFlip();
+      } else {
+        passwordInput.classList.remove('is-error');
+        void passwordInput.offsetWidth;
+        passwordInput.classList.add('is-error');
+        passwordInput.value = '';
+        wrongMsg.classList.add('is-visible');
+        lumi?.setState('startled');
+        setTimeout(() => {
+          wrongMsg.classList.remove('is-visible');
+          passwordInput.classList.remove('is-error');
+          lumi?.setState('idle');
+        }, 2400);
+      }
+    });
+
+    /* ─── Enter button (already authed) ─── */
+    function wireEnterButton() {
+      enterBtn.addEventListener('mouseenter', () => {
+        peekEl?.classList.add('is-visible');
+        lumi?.setState('guiding');
+      });
+      enterBtn.addEventListener('mouseleave', () => {
+        peekEl?.classList.remove('is-visible');
+        lumi?.setState('idle');
+      });
+      enterBtn.addEventListener('mousemove', e => {
+        const r  = enterBtn.getBoundingClientRect();
+        enterBtn.style.setProperty('--mx', ((e.clientX - r.left) / r.width  * 100) + '%');
+        enterBtn.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
+      });
+      enterBtn.addEventListener('click', () => {
+        lumi?.setState('excited');
+        doFlip();
+      });
+    }
+
+    document.addEventListener('keydown', e => {
+      if (alreadyAuthed && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        enterBtn.click();
+      }
+    });
+
+    /* ─── Page-flip transition ─── */
+    function doFlip() {
+      DRIVE.markVisited();
+      const flip = document.getElementById('pageFlip');
+      if (flip) {
+        flip.style.transition = 'opacity 0.5s ease';
+        flip.style.opacity    = '1';
+      }
+      setTimeout(() => { window.location.href = 'gallery.html'; }, 480);
+    }
+  </script>
+</body>
+</html>

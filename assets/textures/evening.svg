@@ -1,0 +1,18 @@
+<svg viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="soften" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="130"/>
+    </filter>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="3" seed="7" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0"/>
+    </filter>
+  </defs>
+  <rect width="1920" height="1080" fill="#1E1B2E"/>
+  <g filter="url(#soften)">
+    <ellipse cx="883" cy="670" rx="384" ry="173" fill="#F0C060" opacity="0.22"/>
+    <ellipse cx="1114" cy="799" rx="307" ry="140" fill="#D4A040" opacity="0.16"/>
+    <ellipse cx="768" cy="540" rx="269" ry="130" fill="#7AAF8A" opacity="0.1"/>
+  </g>
+  <rect width="1920" height="1080" filter="url(#grain)" opacity="0.3"/>
+</svg>

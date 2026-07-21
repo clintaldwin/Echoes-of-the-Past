@@ -1,0 +1,515 @@
+/* ===================================================
+   ECHOES — ghost.css
+   Lumi the Ghost NPC — all visual states & speech
+   =================================================== */
+
+/* ─── Lumi Container ───
+   Position is driven entirely by JS via transform: translate3d(...)
+   (see lumi.js) — top/left stay at 0 so the transform is the only
+   thing moving Lumi, which keeps movement on the compositor thread.
+   pointer-events is none on the container itself so empty space
+   around the ghost never blocks clicks on cards underneath; the
+   SVG below re-enables pointer-events so Lumi herself stays clickable. */
+#lumi {
+  position: fixed;
+  z-index: var(--z-lumi);
+  pointer-events: none;
+  cursor: auto;
+  width: 72px;
+  height: 90px;
+  top: 0;
+  left: 0;
+  will-change: transform;
+  transition: filter 0.8s ease;
+}
+
+#lumi svg {
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+  filter: drop-shadow(0 0 14px rgba(255, 243, 184, 0.75))
+          drop-shadow(0 0 28px rgba(255, 243, 184, 0.35));
+  transition: filter 0.6s ease;
+}
+
+/* ─── Form wrapper: Seed / Bloom / Celestial scale ───
+   A third, independent transform layer — #lumi gets JS translate3d,
+   .lumi-visual gets JS squash/stretch scale, and THIS gets the form
+   scale via a CSS transition triggered by a class swap. Three separate
+   elements, three separate transforms, nothing to fight over. */
+.lumi-form {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-origin: center center;
+  transition: transform 1.1s var(--ease-soft, ease);
+}
+
+.lumi-form--bloom {
+  transform: scale(2);
+}
+
+.lumi-form--celestial {
+  transform: scale(2.6);
+  animation: lumiCelestialDrift 6s ease-in-out infinite;
+}
+
+/* ─── Visual wrapper: squash/stretch + horizontal flip layer ───
+   Kept separate from #lumi's translate3d (position) and from
+   .lumi-body's state-driven keyframe animations (float/tilt/spin/
+   droop/sleep), so none of those transforms fight each other —
+   this element only ever receives JS-driven scale()/scaleX(). */
+.lumi-visual {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-origin: center bottom;
+  will-change: transform;
+}
+
+/* ─── Hover interaction ─── */
+#lumi:hover svg {
+  filter: drop-shadow(0 0 20px rgba(255, 243, 184, 0.95))
+          drop-shadow(0 0 40px rgba(255, 232, 163, 0.5))
+          drop-shadow(0 0 60px rgba(255, 208, 96, 0.3));
+}
+
+/* ─── Lumi States ─── */
+
+/* Idle — gentle figure-8 float */
+#lumi.lumi--idle .lumi-body {
+  animation: lumiFloat 4.5s var(--ease-soft) infinite;
+  transform-origin: center bottom;
+}
+
+/* Curious — tilts toward hovered memory */
+#lumi.lumi--curious .lumi-body {
+  animation: lumiTilt 2.5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Excited — spins, sparkles */
+#lumi.lumi--excited .lumi-body {
+  animation: lumiSpin 0.8s var(--ease-spring) 1,
+             lumiFloat 3s var(--ease-soft) 0.8s infinite;
+}
+
+/* Melancholy — droops, dims */
+#lumi.lumi--melancholy .lumi-body {
+  animation: lumiDroop 3.5s ease-in-out infinite;
+}
+
+#lumi.lumi--melancholy svg {
+  filter: drop-shadow(0 0 8px rgba(221, 235, 255, 0.4))
+          drop-shadow(0 0 16px rgba(221, 235, 255, 0.2))
+          brightness(0.8);
+}
+
+/* Watching — barely moves */
+#lumi.lumi--watching .lumi-body {
+  animation: lumiFloat 8s var(--ease-soft) infinite;
+  opacity: 0.85;
+}
+
+/* Reading — the letter-sitting pose. She settles instead of floating:
+   feet tuck under (see .lumi-feet below), the float loop stops, and
+   only the idle micro-breathing continues. This is the one behavior
+   the blueprint calls out as doing the most for "feels connected." */
+#lumi.lumi--reading .lumi-body {
+  animation: lumiBreathe 4s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+#lumi.lumi--reading .lumi-feet {
+  opacity: 1;
+}
+
+/* Sleeping — curled, eyes closed, zzz */
+#lumi.lumi--sleeping .lumi-body {
+  animation: lumiSleep 2.8s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+#lumi.lumi--sleeping svg {
+  filter: drop-shadow(0 0 6px rgba(255, 243, 184, 0.3))
+          brightness(0.6);
+}
+
+/* Greeting — bobs toward user */
+#lumi.lumi--greeting .lumi-body {
+  animation: lumiBob 1.2s var(--ease-spring) 2,
+             lumiFloat 4s var(--ease-soft) 2.4s infinite;
+}
+
+/* Startled — quick flinch */
+#lumi.lumi--startled .lumi-body {
+  animation: lumiFlinch 0.5s var(--ease-spring) 1;
+}
+
+/* Guiding — drifts toward button */
+#lumi.lumi--guiding .lumi-body {
+  animation: lumiFloat 4s var(--ease-soft) infinite;
+}
+
+#lumi.lumi--guiding svg {
+  filter: drop-shadow(0 0 18px rgba(255, 243, 184, 0.85))
+          drop-shadow(0 0 36px rgba(255, 208, 96, 0.4));
+}
+
+/* Guest mode */
+#lumi.lumi--guest svg {
+  filter: drop-shadow(0 0 14px rgba(255, 243, 184, 0.65))
+          drop-shadow(0 0 28px rgba(255, 243, 184, 0.3))
+          saturate(0.8);
+}
+
+/* Leaning — the autonomous half of "near a significant memory, leans
+   toward it" (the hover-triggered half is attractToCard's forced
+   target, which this same class also covers since both set the same
+   underlying pull). A small, steady lean rather than a snap. */
+#lumi.lumi-leaning .lumi-visual {
+  transition: transform 0.9s var(--ease-soft);
+}
+
+/* Music-sync — a slow, steady breathing glow while the ambience is
+   playing. Deliberately a fixed interval, not real audio analysis. */
+#lumi.lumi-music-pulse svg {
+  animation: lumiMusicPulse 2.1s ease-in-out infinite;
+}
+
+/* ─── Idle micro-behaviors (layered atop the 'idle' state) ───
+   These share .lumi-body / .lumi-eyes with the state rules above,
+   so they're scoped under #lumi and placed AFTER the state block:
+   equal specificity + later source order means a micro-behavior
+   class wins over the plain idle float for as long as it's applied,
+   then cleanly falls back to lumiFloat once JS removes the class.
+   One-shot (non-infinite) so they read as a brief flourish, not a
+   new permanent loop. Skipped entirely under prefers-reduced-motion. */
+#lumi .lumi-body.lumi-micro--tilt {
+  animation: lumiTilt 2.3s ease-in-out 1;
+}
+
+#lumi .lumi-body.lumi-micro--shimmer {
+  animation: lumiShimmer 1.9s ease-in-out 1;
+}
+
+#lumi .lumi-body.lumi-micro--sleep-brief {
+  animation: lumiSleep 2.9s ease-in-out 1;
+}
+
+/* Plain spin, no sparkle burst — used by the ~20s idle-exploration
+   tier (see _exploreOnOwn in lumi.js), where a full 'excited' state
+   would be too big a reaction for "just looking around." */
+#lumi .lumi-body.lumi-micro--spin {
+  animation: lumiSpin 0.8s var(--ease-spring) 1;
+}
+
+/* Look-around targets the eyes GROUP — independent of the individual
+   eye transforms used by sleeping/excited/melancholy, so it composes
+   safely with any state. */
+#lumi .lumi-eyes.lumi-micro--look {
+  animation: lumiLookAround 1.7s ease-in-out 1;
+}
+
+/* ─── Lumi Body parts (SVG classes) ─── */
+.lumi-body {
+  transform-origin: center;
+}
+
+/* Stitched-fabric silhouette. Fill responds to theme (base.css/themes.css
+   set --lumi-body per [data-theme]) and softly shifts for a melancholy
+   memory — the one place her color itself changes, not just her glow. */
+.lumi-body-shape {
+  fill: var(--lumi-body, #FFF8ED);
+  stroke: var(--lumi-outline, rgba(70, 58, 44, 0.4));
+  stroke-width: 0.8;
+  transition: fill 1.8s ease;
+}
+
+#lumi.lumi--melancholy .lumi-body-shape {
+  fill: var(--lumi-body-sad, #DDEBFF);
+}
+
+/* Inner stitch line — the one direct visual quote from the embroidery
+   reference. Sparse on purpose: a thin dashed inset, not a border. */
+.lumi-stitch {
+  stroke: var(--lumi-stitch, #7C8B5E);
+  stroke-width: 0.5;
+  stroke-opacity: 0.55;
+  stroke-dasharray: 1.6 1.4;
+}
+
+.lumi-halo {
+  transition: opacity 1s ease;
+}
+
+/* Rare mouth — only for a genuinely important memory. No eyebrows, ever. */
+.lumi-mouth {
+  stroke: #3A3226;
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+
+#lumi.lumi-form--bloom .lumi-mouth,
+#lumi.lumi-form--celestial .lumi-mouth {
+  opacity: 0.8;
+}
+
+.lumi-eyes .lumi-eye {
+  transition: opacity 0.3s ease;
+}
+
+/* Tiny tucked feet — letter/reading pose only (see .lumi--reading above). */
+.lumi-feet {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.lumi-feet ellipse {
+  fill: var(--lumi-body, #FFF8ED);
+  stroke: var(--lumi-outline, rgba(70, 58, 44, 0.4));
+  stroke-width: 0.6;
+}
+
+/* Faint wings of light — Bloom form only. */
+.lumi-wings {
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.lumi-wings path {
+  fill: var(--lumi-glow-1, #FFF3B8);
+}
+
+#lumi.lumi-form--bloom .lumi-wings {
+  opacity: 0.35;
+}
+
+/* Celestial — body dissolves toward pure starlight, only the eyes and
+   halo keep their glow. */
+#lumi.lumi-form--celestial .lumi-body-shape {
+  opacity: 0.12;
+}
+
+#lumi.lumi-form--celestial .lumi-stitch {
+  opacity: 0;
+}
+
+#lumi.lumi-form--celestial .lumi-halo {
+  opacity: 1;
+}
+
+#lumi.lumi-form--celestial svg {
+  filter: drop-shadow(0 0 24px rgba(255, 243, 184, 0.95))
+          drop-shadow(0 0 60px rgba(255, 232, 163, 0.6))
+          drop-shadow(0 0 100px rgba(255, 208, 96, 0.3));
+}
+
+/* ─── Lumi Aura (soft ambient glow, always present) ─── */
+.lumi-aura {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 243, 184, 0.15), transparent 70%);
+  pointer-events: none;
+  animation: gatePulse 3s ease-in-out infinite;
+}
+
+/* ─── Ambient FX canvas (fog displacement, smoke trail, dust,
+   fireflies, aurora ribbon — see LumiAmbience in lumi.js) ─── */
+.lumi-fx-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: var(--z-lumi-fx, 29);
+}
+
+/* ─── Lumi Trail Particles ───
+   Small stars by default (a soft 4-point sparkle via clip-path), with
+   rare petal/butterfly variants — see _pickParticleShapeClass in
+   lumi.js. Kept as clip-path rather than border-radius so it doesn't
+   collide with the inline `transform: translate(...)` these elements
+   already get for positioning. */
+.lumi-trail-particle {
+  position: fixed;
+  pointer-events: none;
+  z-index: calc(var(--z-lumi) - 1);
+  animation: sparkle 1.5s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+.lumi-trail-particle--star,
+.lumi-sparkle--star {
+  clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+}
+
+.lumi-trail-particle--petal,
+.lumi-sparkle--petal {
+  border-radius: 50% 50% 50% 4%;
+}
+
+.lumi-trail-particle--butterfly,
+.lumi-sparkle--butterfly {
+  clip-path: polygon(0% 15%, 42% 50%, 0% 85%, 100% 85%, 58% 50%, 100% 15%);
+}
+
+/* ─── ZZZ Bubbles (sleep) — positioned relative to #lumi ─── */
+.lumi-zzz {
+  position: absolute;
+  font-family: var(--font-ghost);
+  font-size: 14px;
+  color: rgba(143, 175, 142, 0.7);
+  pointer-events: none;
+  animation: zzz 2s ease-out infinite;
+}
+
+.lumi-zzz:nth-child(2) { animation-delay: 0.7s; font-size: 11px; }
+.lumi-zzz:nth-child(3) { animation-delay: 1.4s; font-size: 9px; }
+
+/* ─── Speech Bubble ───
+   A child of #lumi (see lumi.js speak()), positioned relative to
+   that containing block — no per-frame coordinate math needed, it
+   simply always sits above Lumi regardless of where she's roamed. */
+.speech-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-70%);
+  margin-bottom: 14px;
+  z-index: calc(var(--z-lumi) + 1);
+  max-width: 180px;
+  padding: 10px 14px;
+  border-radius: 16px 16px 16px 4px;
+  background: rgba(251, 245, 230, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 165, 90, 0.35);
+  box-shadow: 0 4px 20px rgba(44, 36, 22, 0.12),
+              0 0 0 1px rgba(255, 252, 245, 0.8) inset;
+  pointer-events: none;
+  transform-origin: bottom left;
+}
+
+.speech-bubble p {
+  font-family: var(--font-lumi-speech, 'Cormorant Garamond', Georgia, serif);
+  font-size: 18px;
+  line-height: 1.45;
+  color: var(--ink);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Bubble tail */
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 16px;
+  width: 12px;
+  height: 12px;
+  background: rgba(251, 245, 230, 0.92);
+  border-right: 1px solid rgba(212, 165, 90, 0.35);
+  border-bottom: 1px solid rgba(212, 165, 90, 0.35);
+  transform: rotate(45deg);
+  clip-path: polygon(0 0, 100% 100%, 100% 0);
+}
+
+.speech-bubble.bubble--enter {
+  animation: bubblePop 0.4s var(--ease-spring) forwards;
+}
+
+.speech-bubble.bubble--exit {
+  animation: bubbleFade 0.4s ease forwards;
+}
+
+/* ─── Lumi Sparkle Ring (excited) ─── */
+.lumi-sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+  animation: sparkle 1.2s ease-out forwards;
+}
+
+/* ─── Tear drops (sad) ─── */
+.lumi-tear {
+  position: absolute;
+  width: 4px;
+  height: 8px;
+  border-radius: 50% 50% 60% 60%;
+  background: rgba(150, 190, 200, 0.7);
+  pointer-events: none;
+  animation: tearDrop 1s ease-in forwards;
+}
+
+/* ─── Question mark bubble ─── */
+.lumi-question {
+  position: absolute;
+  top: -24px;
+  right: -8px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: rgba(212, 165, 90, 0.8);
+  animation: lumiBob 1.5s ease-in-out infinite;
+}
+
+/* ─── Lumi in entry gate (smaller, watching) ─── */
+.gate-lumi {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  width: 54px;
+  height: 68px;
+  z-index: var(--z-lumi);
+  opacity: 0.65;
+  transition: opacity 0.8s ease;
+}
+
+.gate-lumi:hover {
+  opacity: 1;
+}
+
+/* ─── Lumi on create page (watching textarea) ─── */
+.create-lumi {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  width: 60px;
+  height: 75px;
+  z-index: var(--z-lumi);
+  transition: right 0.8s var(--ease-ghost);
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  #lumi {
+    width: 54px;
+    height: 68px;
+  }
+
+  .speech-bubble {
+    max-width: 150px;
+    font-size: 13px;
+  }
+}
+
+/* ─── Reduced motion ───
+   Core roaming movement stays on (it's functional, not decorative),
+   but the purely ornamental layers back off: idle micro-behaviors,
+   the ambient FX canvas, and the Lumi-triggered card flourishes
+   (see gallery.css). */
+@media (prefers-reduced-motion: reduce) {
+  #lumi .lumi-body.lumi-micro--tilt,
+  #lumi .lumi-body.lumi-micro--shimmer,
+  #lumi .lumi-body.lumi-micro--sleep-brief,
+  #lumi .lumi-body.lumi-micro--spin,
+  #lumi .lumi-eyes.lumi-micro--look,
+  #lumi.lumi-music-pulse svg,
+  #lumi.lumi-form--celestial,
+  .lumi-fx-canvas {
+    animation: none !important;
+  }
+}

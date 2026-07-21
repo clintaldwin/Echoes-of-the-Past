@@ -1,0 +1,38 @@
+/* ==========================================================================
+   Ambient Background System — css/ambient.css
+   -----------------------------------------------------------------------
+   A single full-viewport <canvas> layer that renders theme-reactive
+   ambient visuals (god rays / nebula / fog) behind all page content.
+
+   Usage: the canvas is created and injected by js/ambient-bg.js — you
+   don't need to add it to your HTML by hand. Just link this stylesheet
+   and import the script (see the snippet at the bottom of this file).
+   ========================================================================== */
+
+.ambient-bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+
+  /* Sits behind everything by default. Every other fixed/absolute layer
+     in this codebase (.fog-container, .grain-overlay, .vignette, etc.)
+     already carries an explicit z-index of 1 or higher, so z-index: 0
+     here keeps this canvas beneath all of them without needing !important
+     or touching existing rules. Override with --ambient-z-index if a
+     given page needs it lower (e.g. -1, provided <body> has no other
+     transform/opacity/filter that would create a stacking context that
+     traps a negative z-index behind the page's own background). */
+  z-index: var(--ambient-z-index, 0);
+
+  /* Purely decorative — never intercepts clicks, drags, or taps meant
+     for real page content. Ripple detection listens on window instead,
+     so this has no effect on the tap-ripple feature. */
+  pointer-events: none;
+
+  display: block;
+
+  /* Canvas paints its own bitmap; it never needs to react to its
+     children (it has none) or leak layout/paint outside its box. */
+  contain: strict;
+}
